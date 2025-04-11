@@ -3,7 +3,7 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background: #f4f4f4;
+    background: #e3dede;
 }
 
 /* Navigation Bar */
@@ -11,9 +11,9 @@ nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #2C3E50;
-    padding: 10px 20px;
-    color: white;
+    background:#0077b6;
+     padding: 10px 20px;
+    color: orange;
 }
 
 .logo {
@@ -32,7 +32,7 @@ nav ul li {
 
 nav ul li a {
     color: white;
-    text-decoration: none;
+    text-decoration: underline;
 }
 
 /* Hero Section */
@@ -41,7 +41,7 @@ nav ul li a {
     justify-content: space-between;
     align-items: center;
     padding: 50px;
-    background: #ECF0F1;
+    background: lightblue;
 }
 
 .hero-text {
@@ -58,7 +58,9 @@ nav ul li a {
 
 .hero-text button {
     background: #3498DB;
-    color: white;
+
+    
+    color: rgb(237, 224, 224);
     border: none;
     padding: 10px 20px;
     cursor: pointer;
@@ -70,9 +72,11 @@ nav ul li a {
 }
 
 .hero-image img {
-    width: 400px;
+    width: 800px;
     /* Set a width for the image */
     border-radius: 10px;
+    object-fit:cover;
+    display:block;
 }
 
 /* Authentication Box */
@@ -82,7 +86,7 @@ nav ul li a {
     top: 20%;
     left: 50%;
     transform: translate(-50%, -20%);
-    background: white;
+    background: rgb(38, 35, 35);
     padding: 20px;
     box-shadow: 0px 0px 10px gray;
     text-align: center;
@@ -111,6 +115,44 @@ nav ul li a {
 
 .auth-box button:hover {
     background: #1A252F;
+}
+/* Styling for Auth Dropdown */
+.auth-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    background: white;
+    min-width: 150px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    padding: 10px;
+    text-align: center;
+    z-index: 1000;
+}
+
+.dropdown-content button {
+    background: #004080;
+    color: white;
+    border: none;
+    padding: 8px 10px;
+    width: 100%;
+    margin: 5px 0;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+.dropdown-content button:hover {
+    background: #002855;
+}
+
+/* Show dropdown when active */
+.auth-dropdown.active .dropdown-content {
+    display: block;
 }
 
 /* Responsive Design */
@@ -377,6 +419,7 @@ button:hover {
 /* Services Section */
 .services-section {
     text-align: center;
+    align-items: center;
     padding: 60px 20px;
     background: #F8F9FA;
 }
@@ -396,6 +439,7 @@ button:hover {
 /* Services Container */
 .services-container {
     display: flex;
+    border-RADIUS: 12px;
     justify-content: center;
     gap: 30px;
     flex-wrap: wrap;

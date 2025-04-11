@@ -18,8 +18,12 @@
             <li><a href="#doctors">Doctors</a></li>
             <li><a href="service.html">Services</a></li>
 
+
             <li><a href="#contact">Contact</a></li>
             <li><a href="#" id="authLink" onclick="handleAuthClick()">Login/Register</a></li>
+            <li><a href="#" onclick="window.viewAppointments()">View Appointments</a></li>
+
+
 
         </ul>
     </nav>
@@ -29,12 +33,15 @@
         <div class="hero-text">
             <h1>Your Partner in <br> <span>Health and Wellness</span></h1>
             <p>Providing the best medical and healthcare services to help you live healthier and happier.</p>
-            <button id="bookAppointmentBtn">BOOK AN APPOINTMENT</button>
+
+            <button onclick="redirectTo('Appointment.html')">BOOK AN APPOINTMENT</button>
         </div>
         <div class="hero-image">
-            <img src="doctor.png" alt="Doctors">
+            <img src="images/doctor.png" alt="Doctors">
+
         </div>
     </section>
+
 
 
     <!-- 🔑 Authentication Modal (Only Login/Register) -->
@@ -54,22 +61,23 @@
 
         <div class="doctors-container">
             <div class="doctor-card">
-                <img src="doctor1.jpg" alt="Dr. Emilia Doe">
-                <h3>Dr. Nita Sharma</h3>
+                <img src="images/doctor1.jpg" alt="Dr. Emilia Doe">
+                <h3>Dr. Nita sharma</h3>
                 <p>Cardiologist</p>
             </div>
             <div class="doctor-card">
-                <img src="doctor2.jpg" alt="Dr. Jane Smith">
+                <img src="images/doctor2.jpg" alt="Dr. Jane Smith">
                 <h3>Dr. Lalit</h3>
                 <p>Neurologist</p>
             </div>
             <div class="doctor-card">
-                <img src="doctor3.jpg" alt="Dr. Alex Brown">
+                <img src="images/doctor3.jpg" alt="Dr. Alex Brown">
                 <h3>Dr. Bhaskar</h3>
                 <p>Orthopedic Surgeon</p>
             </div>
         </div>
     </section>
+
 
     <!-- Services Section -->
     <section id="services" class="services-section">
@@ -82,7 +90,7 @@
                     <h3>Cardiology</h3>
                     <p>Heart care and advanced treatments.</p>
                 </div>
-                <img src="service1.jpg" alt="Cardiology">
+                <img src="images/service1.jpg" alt="Cardiology">
             </div>
 
             <div class="service-card">
@@ -90,7 +98,7 @@
                     <h3>Neurology</h3>
                     <p>Brain & nerve health solutions.</p>
                 </div>
-                <img src="service2.jpg" alt="Neurology">
+                <img src="images/service2.jpg" alt="Neurology">
             </div>
 
             <div class="service-card">
@@ -98,7 +106,7 @@
                     <h3>Orthopedics</h3>
                     <p>Bone & joint treatment by experts.</p>
                 </div>
-                <img src="service3.jpg" alt="Orthopedics">
+                <img src="images/service3.jpg" alt="Orthopedics">
             </div>
         </div>
     </section>
@@ -106,12 +114,12 @@
         <div class="contact-container">
             <h2>Contact Us</h2>
             <p>Feel free to reach out to us for any queries or appointments.</p>
-    
+
             <div class="contact-info">
                 <div class="contact-card">
                     <i class="fas fa-map-marker-alt"></i>
                     <h3>Address</h3>
-                    <p>123 Health Street, City, Country</p>
+                    <p>123 Health Street, Nashik, India</p>
                 </div>
                 <div class="contact-card">
                     <i class="fas fa-phone"></i>
@@ -124,7 +132,7 @@
                     <p>health11@hospital.com</p>
                 </div>
             </div>
-    
+
             <form id="contact-form">
                 <input type="text" id="name" placeholder="Your Name" required>
                 <input type="email" id="email" placeholder="Your Email" required>
@@ -133,10 +141,17 @@
             </form>
         </div>
     </section>
-    
+
 
     <script type="module" src="script.js"></script>
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
     <script>
+        emailjs.init("fD03booYnikUwrpRv"); // Replace with your actual public key
+    </script>
+
+    <script>
+
+
         function openAuthModal() {
             document.getElementById('authContainer').style.display = 'flex';
         }

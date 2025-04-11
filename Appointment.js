@@ -22,13 +22,15 @@ const db = getFirestore(app);
 document.addEventListener("DOMContentLoaded", () => {
     const appointmentForm = document.getElementById("appointmentForm");
 
+    // Check if user is logged in
     onAuthStateChanged(auth, (user) => {
         if (!user) {
             alert("You must be logged in to book an appointment!");
-            window.location.href = "index.html"; // Redirect to home if not logged in
+            window.location.href = "index.html"; // Redirect to home page if not logged in
         }
     });
 
+    // Handle form submission
     appointmentForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
@@ -38,18 +40,21 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        // Get form values
         const patientName = document.getElementById("patientName").value.trim();
         const patientEmail = document.getElementById("patientEmail").value.trim();
         const doctor = document.getElementById("doctor").value;
         const appointmentDate = document.getElementById("appointmentDate").value;
         const appointmentTime = document.getElementById("appointmentTime").value;
 
+        // Validate form inputs
         if (!patientName || !patientEmail || !doctor || !appointmentDate || !appointmentTime) {
             alert("Please fill in all fields.");
             return;
         }
 
         try {
+            // Save appointment to Firestore
             await addDoc(collection(db, "appointments"), {
                 userId: user.uid,
                 patientName,
@@ -60,10 +65,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 timestamp: new Date()
             });
 
-            alert("Appointment booked successfully!");
+            alert("✅ Appointment booked successfully!");
             appointmentForm.reset();
+
+            // ✅ Redirect to Home Page after successful booking
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1500); // Small delay to show success message
+
         } catch (error) {
-            alert("Error booking appointment: " + error.message);
+            alert("❌ Error booking appointment: " + error.message);
         }
     });
 });

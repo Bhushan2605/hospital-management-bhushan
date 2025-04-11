@@ -4,9 +4,11 @@ import {
     getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
     signOut, sendPasswordResetEmail, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-auth.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+import {
+    getFirestore, collection, addDoc, getDoc, getDocs, updateDoc, doc, setDoc
+} from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
 
-// Firebase Configuration
+// Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyD-VoVtqXZ3BILqWcjSthfSD-Dff-dIhRQ",
     authDomain: "hospital-management-b850a.firebaseapp.com",
@@ -22,43 +24,45 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ✅ Update Navbar Based on Auth State
-onAuthStateChanged(auth, (user) => {
-    let authLink = document.getElementById("authLink");
-    let bookBtn = document.getElementById("bookAppointmentBtn");
+// Update Navbar and Buttons Based on Auth State
+onAuthStateChanged(auth, async (user) => {
+    const authLink = document.getElementById("authLink");
+    const bookBtn = document.getElementById("bookAppointmentBtn");
+    const adminPanel = document.getElementById("adminPanel");
+    const viewAppointmentsLink = document.getElementById("viewAppointmentsLink");
 
     if (authLink) {
         if (user) {
             authLink.innerText = "Logout";
             authLink.style.color = "red";
             authLink.onclick = logout;
+
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists() && userDoc.data().role === "admin") {
+                if (adminPanel) adminPanel.style.display = "block";
+            } else {
+                if (adminPanel) adminPanel.style.display = "none";
+            }
         } else {
             authLink.innerText = "Login/Register";
             authLink.style.color = "blue";
             authLink.onclick = () => window.location.href = "login.html";
+            if (adminPanel) adminPanel.style.display = "none";
         }
     }
 
-    if (bookBtn) {
-        bookBtn.disabled = !user; // Disable appointment booking if not logged in
-    }
+    if (bookBtn) bookBtn.disabled = !user;
+    if (viewAppointmentsLink) viewAppointmentsLink.style.display = user ? "inline" : "none";
 });
 
-// ✅ Toggle Authentication Modal
-window.toggleAuth = function () {
-    let authContainer = document.getElementById("authContainer");
-    if (authContainer) {
-        authContainer.style.display = (authContainer.style.display === "block") ? "none" : "block";
-    }
-};
-
-// ✅ Register User
+// Register New User
 window.registerUser = function () {
-    let name = document.getElementById("registerName").value.trim();
-    let age = document.getElementById("registerAge").value.trim();
-    let phone = document.getElementById("registerPhone").value.trim();
-    let email = document.getElementById("registerEmail").value.trim();
-    let password = document.getElementById("registerPassword").value.trim();
+    const name = document.getElementById("registerName").value.trim();
+    const age = document.getElementById("registerAge").value.trim();
+    const phone = document.getElementById("registerPhone").value.trim();
+    const email = document.getElementById("registerEmail").value.trim();
+    const password = document.getElementById("registerPassword").value.trim();
+    const role = document.getElementById("registerRole").value;
 
     if (!name || !age || !phone || !email || !password) {
         alert("Please fill in all fields.");
@@ -66,17 +70,23 @@ window.registerUser = function () {
     }
 
     createUserWithEmailAndPassword(auth, email, password)
-        .then(() => {
+        .then(async (userCredential) => {
+            const user = userCredential.user;
+            await setDoc(doc(db, "users", user.uid), {
+                uid: user.uid,
+                name, age, phone, email, role
+            });
+
             alert("User Registered Successfully!");
-            window.location.href = "login.html"; // ✅ Redirect to login
+            window.location.href = "login.html";
         })
         .catch((error) => alert("Error: " + error.message));
 };
 
-// ✅ Login User
+// Login User
 window.loginUser = function () {
-    let email = document.getElementById("loginEmail").value.trim();
-    let password = document.getElementById("loginPassword").value.trim();
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
 
     if (!email || !password) {
         alert("Please enter both email and password.");
@@ -84,24 +94,34 @@ window.loginUser = function () {
     }
 
     signInWithEmailAndPassword(auth, email, password)
-        .then(() => {
-            alert("Login Successful!");
-            window.location.href = "index.html"; // ✅ Redirect to home
+        .then(async (userCredential) => {
+            const user = userCredential.user;
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                alert("Login Successful!");
+                window.location.href = userData.role === "admin" ? "admin.html" : "index.html";
+            } else {
+                alert("User data not found!");
+            }
         })
         .catch((error) => alert("Error: " + error.message));
 };
 
-// ✅ Logout User
+// Logout
 window.logout = function () {
-    signOut(auth).then(() => {
-        alert("User Logged Out!");
-        window.location.href = "index.html"; // ✅ Redirect to home
-    }).catch((error) => alert("Error: " + error.message));
+    signOut(auth)
+        .then(() => {
+            alert("User Logged Out!");
+            window.location.href = "index.html";
+        })
+        .catch((error) => alert("Error: " + error.message));
 };
 
-// ✅ Password Reset
+// Reset Password
 window.resetPassword = function () {
-    let email = document.getElementById("resetEmail").value.trim();
+    const email = document.getElementById("resetEmail").value.trim();
 
     if (!email) {
         alert("Please enter your email for password reset.");
@@ -113,13 +133,8 @@ window.resetPassword = function () {
         .catch((error) => alert("Error: " + error.message));
 };
 
-// ✅ Book Appointment (Saves to Firebase Firestore)
+// Book Appointment
 window.bookAppointment = function () {
-    if (!auth.currentUser) {
-        alert("Please login to book an appointment.");
-        return;
-    }
-
     const patientName = document.getElementById("patientName").value.trim();
     const appointmentDate = document.getElementById("appointmentDate").value.trim();
     const doctor = document.getElementById("doctorSelect").value;
@@ -129,29 +144,118 @@ window.bookAppointment = function () {
         return;
     }
 
+    if (!auth.currentUser) {
+        alert("Please login to book an appointment.");
+        return;
+    }
+
     addDoc(collection(db, "appointments"), {
         name: patientName,
         date: appointmentDate,
         doctor: doctor,
-        userId: auth.currentUser.uid
+        userId: auth.currentUser.uid,
+        status: "Pending"
     })
-    .then(() => {
-        alert("Appointment booked successfully!");
-        setTimeout(() => {
-            window.location.href = "index.html"; // ✅ Redirect to home after 1s
-        }, 1000);
-    })
-    .catch((error) => {
-        alert("Error booking appointment: " + error.message);
-    });
+        .then(() => {
+            alert("Appointment booked successfully!");
+            setTimeout(() => window.location.href = "index.html", 1000);
+        })
+        .catch((error) => alert("Error booking appointment: " + error.message));
 };
 
-// ✅ Redirect to Appointment Page
+// Load All Appointments (for Admin)
+async function loadAppointments() {
+    const appointmentsTable = document.getElementById("appointmentsTable");
+    if (!appointmentsTable) return;
+
+    appointmentsTable.innerHTML = "";
+
+    const snapshot = await getDocs(collection(db, "appointments"));
+    snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const row = `
+        <tr>
+            <td>${data.name}</td>
+            <td>${data.date}</td>
+            <td>${data.doctor}</td>
+            <td>${data.status}</td>
+            <td>
+                <button onclick="updateAppointmentStatus('${docSnap.id}', 'Approved')">Approve</button>
+                <button onclick="updateAppointmentStatus('${docSnap.id}', 'Rejected')">Reject</button>
+            </td>
+        </tr>`;
+        appointmentsTable.innerHTML += row;
+    });
+}
+
+// Update Appointment Status
+window.updateAppointmentStatus = function (id, status) {
+    updateDoc(doc(db, "appointments", id), { status })
+        .then(() => {
+            alert(`Appointment ${status}`);
+            loadAppointments();
+        })
+        .catch((error) => alert("Error: " + error.message));
+};
+
+// Add Doctor
+window.addDoctor = function () {
+    const doctorName = document.getElementById("doctorName").value.trim();
+    if (!doctorName) {
+        alert("Please enter a doctor's name.");
+        return;
+    }
+
+    addDoc(collection(db, "doctors"), { name: doctorName })
+        .then(() => {
+            alert("Doctor Added Successfully!");
+            location.reload();
+        })
+        .catch((error) => alert("Error: " + error.message));
+};
+
+// View Appointments (for Users)
+window.viewAppointments = function () {
+    if (!auth.currentUser) {
+        alert("Please log in to view your appointments.");
+        return;
+    }
+    window.location.href = "viewAppointments.html";
+};
+
+// Auto-load admin appointments if on Admin Panel
 document.addEventListener("DOMContentLoaded", function () {
-    const appointmentBtn = document.getElementById("bookAppointmentBtn");
-    if (appointmentBtn) {
-        appointmentBtn.addEventListener("click", function () {
-            window.location.href = "appointment.html";
-        });
+    if (document.getElementById("adminPanel")) {
+        loadAppointments();
     }
 });
+document.getElementById("appointmentForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+  
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const doctor = document.getElementById("doctor").value;
+    const date = document.getElementById("date").value;
+    const time = document.getElementById("time").value;
+    const appointmentId = "APT-" + Date.now(); // Simple unique ID
+  
+    // Save to Firebase (if needed)
+    // firebase.firestore().collection("appointments").add({...});
+  
+    // Send Email using EmailJS
+    emailjs.send("bhushanwani989@gmail.com", "template_keuvwyb", {
+      name: name,
+      email: email,
+      doctor: doctor,
+      date: date,
+      time: time,
+      Appointment_id: appointmentId
+    }).then(function (response) {
+      alert("Appointment confirmation sent to " + email);
+      document.getElementById("appointmentForm").reset();
+    }, function (error) {
+      console.error("EmailJS error:", error);
+      alert("Failed to send confirmation email.");
+    });
+  });
+  
